@@ -1,0 +1,23 @@
+This routine allows one to read MATLAB MAT-files in IDL. I've only
+tested it on very specific .mat files so far, and not all variable
+types are supported yet. However, the code is written in such a way
+that one should be able to easily extend it so that it reads the other
+objects MATLAB can store in a .mat file. If you'd like me to add
+something, send me a .mat file and I'll try to make it work.
+
+This routine only reads Level 5 .mat files [1] - it doesn't read
+HDF-based MATLAB format.
+
+Usage:
+
+PRO load_mat, <filename>, <path>, STORE_LEVEL=store_level, $
+              VERBOSE=verbose, DEBUG=debug
+
+By default, it will create the variables on the $MAIN$ level. To have
+the routine only create variables in your program's context, use
+STORE_LEVEL=-1 in your program. See the (undocumented) IDL function
+ROUTINE_NAMES for more information [2, 3].
+
+[1] http://www.mathworks.com/access/helpdesk/help/pdf_doc/matlab/matfile_format.pdf
+[2] http://www.physics.wisc.edu/~craigm/idl/down/routine_names.pro
+[3] http://www.idlcoyote.com/tips/access_main_vars.html

@@ -757,21 +757,22 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
                endian_indicator: "" $
              }
 
-    path = add_path_sep(path)
 
-    file_information = file_info(path+filename)
+    file = filepath(filename, ROOT_DIR=path)
+
+    file_information = file_info(file)
 
     IF file_information.exists EQ 0 THEN BEGIN
-        print, "File does not exist (", path+filename, ")"
+        print, "File does not exist (", file, ")"
         return
     ENDIF
 
     IF file_information.directory EQ 1 THEN BEGIN
-        print, "File is a directory (", path+filename, ")"
+        print, "File is a directory (", file, ")"
         return
     ENDIF
 
-    openr, lun, path+filename, /GET_LUN
+    openr, lun, file, /GET_LUN
 
     ;; By default, create the variables on the $MAIN$ level
 

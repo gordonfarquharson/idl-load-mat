@@ -121,7 +121,7 @@ PRO skip_padding_bytes, lun, DEBUG=debug
 
 END
 
-PRO read_int8_data, lun, element_tag, data
+PRO read_int8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     ;; FIXME: Not sure how to represent signed 8-bit data in IDL.
 
@@ -132,7 +132,7 @@ PRO read_int8_data, lun, element_tag, data
 
 END
 
-PRO read_uint8_data, lun, element_tag, data
+PRO read_uint8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
@@ -141,100 +141,111 @@ PRO read_uint8_data, lun, element_tag, data
 
 END
 
-PRO read_int16_data, lun, element_tag, data
+PRO read_int16_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = intarr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_uint16_data, lun, element_tag, data
+PRO read_uint16_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = uintarr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_int32_data, lun, element_tag, data
+PRO read_int32_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = lonarr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_uint32_data, lun, element_tag, data
+PRO read_uint32_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = ulonarr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_single_data, lun, element_tag, data
+PRO read_single_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = fltarr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_double_data, lun, element_tag, data
+PRO read_double_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = dblarr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_int64_data, lun, element_tag, data
+PRO read_int64_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = lon64arr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_uint64_data, lun, element_tag, data
+PRO read_uint64_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     number_of_elements = element_tag.number_of_bytes / $
                          size_of_data_type(element_tag.data_symbol)
     data = ulon64arr(number_of_elements)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_utf8_data, lun, element_tag, data
+PRO read_utf8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     data = bytarr(element_tag.number_of_bytes)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_utf16_data, lun, element_tag, data
+PRO read_utf16_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     data = intarr(element_tag.number_of_bytes)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO read_utf32_data, lun, element_tag, data
+PRO read_utf32_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
 
     data = lonarr(element_tag.number_of_bytes)
     readu, lun, data
+    IF swap_endian THEN swap_endian_inplace, data
 
 END
 
-PRO skip_unknown_data, lun, element_tag
+PRO skip_unknown_data, lun, element_tag, SWAP_ENDIAN=swap_endian
 
     data_bytes = bytarr(element_tag.number_of_bytes)
     readu, lun, data_bytes
@@ -253,16 +264,18 @@ FUNCTION element_tag_struct
 
 END
 
-PRO read_element_tag, lun, element_struct, DEBUG=debug
+PRO read_element_tag, lun, element_struct, SWAP_ENDIAN=swap_endian, DEBUG=debug
 
     data_type = 0UL
     number_of_bytes = 0UL
 
     readu, lun, data_type
+    IF swap_endian THEN swap_endian_inplace, data_type
 
     IF (data_type AND 'FFFF0000'XUL) EQ 0UL THEN BEGIN
 
         readu, lun, number_of_bytes
+        IF swap_endian THEN swap_endian_inplace, number_of_bytes
 
         element_struct.data_type = data_type
         element_struct.number_of_bytes = number_of_bytes
@@ -390,12 +403,15 @@ FUNCTION subelement_array_flags_struct
 END
 
 PRO read_subelement_array_flags, lun, subelement_tag, subelement_struct, $
+                                 SWAP_ENDIAN=swap_endian, $
                                  DEBUG=debug
 
     flags1 = 0UL
     flags2 = 0UL
 
     readu, lun, flags1, flags2
+    IF swap_endian THEN swap_endian_inplace, flags1
+    IF swap_endian THEN swap_endian_inplace, flags2
 
     subelement_struct.flag_word_1 = flags1
     subelement_struct.flag_word_2 = flags2
@@ -490,6 +506,7 @@ FUNCTION subelement_dimensions_array_struct
 END
 
 PRO read_subelement_dimensions_array, lun, subelement_tag, subelement_struct, $
+                                      SWAP_ENDIAN=swap_endian, $
                                       DEBUG=debug
 
     number_of_dimensions = subelement_tag.number_of_bytes / $
@@ -508,6 +525,7 @@ PRO read_subelement_dimensions_array, lun, subelement_tag, subelement_struct, $
             dimension = 0B
             FOR i = 0, number_of_dimensions-1 DO BEGIN
                 readu, lun, dimension
+                IF swap_endian THEN swap_endian_inplace, dimension
                 dimensions[i] = dimension
             ENDFOR
         END
@@ -515,6 +533,7 @@ PRO read_subelement_dimensions_array, lun, subelement_tag, subelement_struct, $
             dimension = 0
             FOR i = 0, number_of_dimensions-1 DO BEGIN
                 readu, lun, dimension
+                IF swap_endian THEN swap_endian_inplace, dimension
                 dimensions[i] = dimension
             ENDFOR
         END
@@ -522,6 +541,7 @@ PRO read_subelement_dimensions_array, lun, subelement_tag, subelement_struct, $
             dimension = 0L
             FOR i = 0, number_of_dimensions-1 DO BEGIN
                 readu, lun, dimension
+                IF swap_endian THEN swap_endian_inplace, dimension
                 dimensions[i] = dimension
             ENDFOR
         END
@@ -538,7 +558,8 @@ PRO read_subelement_dimensions_array, lun, subelement_tag, subelement_struct, $
 
 END
 
-PRO read_subelement_array_name, lun, subelement_tag, array_name, DEBUG=debug
+PRO read_subelement_array_name, lun, subelement_tag, array_name, $
+                                SWAP_ENDIAN=swap_endian, DEBUG=debug
 
     ;; Assume that data type is always miINT8.
 
@@ -552,67 +573,68 @@ PRO read_subelement_array_name, lun, subelement_tag, array_name, DEBUG=debug
 
 END
 
-PRO read_element_data, lun, element_tag, data, DEBUG=debug
+PRO read_element_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian, $
+                       DEBUG=debug
 
     data_recognized = 1
 
     SWITCH element_tag.data_symbol OF
 
         'miINT8'       : BEGIN
-            read_int8_data, lun, element_tag, data
+            read_int8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miUINT8'      : BEGIN
-            read_uint8_data, lun, element_tag, data
+            read_uint8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miINT16'      : BEGIN
-            read_int16_data, lun, element_tag, data
+            read_int16_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miUINT16'     : BEGIN
-            read_uint16_data, lun, element_tag, data
+            read_uint16_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miINT32'      : BEGIN
-            read_int32_data, lun, element_tag, data
+            read_int32_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miUINT32'     : BEGIN
-            read_uint32_data, lun, element_tag, data
+            read_uint32_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miSINGLE'     : BEGIN
-            read_single_data, lun, element_tag, data
+            read_single_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miDOUBLE'     : BEGIN
-            read_double_data, lun, element_tag, data
+            read_double_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             BREAK
         END
 
         'miINT64'      : BEGIN
-            read_int64_data, lun, element_tag, data
+            read_int64_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miUINT64'     : BEGIN
-            read_uint64_data, lun, element_tag, data
+            read_uint64_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
@@ -626,25 +648,25 @@ PRO read_element_data, lun, element_tag, data, DEBUG=debug
         END
 
         'miUTF8'       : BEGIN
-            read_utf8_data, lun, element_tag, data
+            read_utf8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miUTF16'      : BEGIN
-            read_utf8_data, lun, element_tag, data
+            read_utf8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
 
         'miUTF32'      : BEGIN
-            read_utf8_data, lun, element_tag, data
+            read_utf8_data, lun, element_tag, data, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             BREAK
         END
         
         ELSE           : BEGIN
-            skip_unknown_data, lun, element_tag
+            skip_unknown_data, lun, element_tag, SWAP_ENDIAN=swap_endian
             skip_padding_bytes, lun, DEBUG=debug
             data_recognized = 0
         END
@@ -809,7 +831,8 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
         print, 'Endian                : ', header.endian_indicator
     ENDIF
 
-    ;; Todo: must implement endian swapping
+    ;; Figure out whether we need to do endian swapping
+    swap_endian = (header.endian_indicator EQ 'IM' ? 1 : 0)
 
     data = 0
     data_element_number = 0
@@ -822,7 +845,7 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
         ENDIF
 
         element_tag = element_tag_struct()
-        read_element_tag, lun, element_tag, DEBUG=debug
+        read_element_tag, lun, element_tag, SWAP_ENDIAN=swap_endian, DEBUG=debug
 
         SWITCH element_tag.data_symbol OF
 
@@ -836,14 +859,18 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
                 ENDIF
 
                 array_flags_tag = element_tag_struct()
-                read_element_tag, lun, array_flags_tag, DEBUG=debug
+                read_element_tag, lun, array_flags_tag, $
+                                  SWAP_ENDIAN=swap_endian, $
+                                  DEBUG=debug
 
                 IF keyword_set(debug) THEN BEGIN
                     print, '* Array flags subelement data'
                 ENDIF
 
                 array_flags = subelement_array_flags_struct()
-                read_subelement_array_flags, lun, array_flags_tag, array_flags, $
+                read_subelement_array_flags, lun, $
+                                             array_flags_tag, array_flags, $
+                                             SWAP_ENDIAN=swap_endian, $
                                              DEBUG=debug
 
                 ;; Dimensions array subelement
@@ -854,15 +881,20 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
                 ENDIF
 
                 dimensions_array_tag = element_tag_struct()
-                read_element_tag, lun, dimensions_array_tag, DEBUG=debug
+                read_element_tag, lun, dimensions_array_tag, $
+                                  SWAP_ENDIAN=swap_endian, $
+                                  DEBUG=debug
 
                 IF keyword_set(debug) THEN BEGIN
                     print, '* Dimensions array subelement data'
                 ENDIF
 
                 dimensions_array = subelement_dimensions_array_struct()
-                read_subelement_dimensions_array, lun, dimensions_array_tag, $
-                                                  dimensions_array, DEBUG=debug
+                read_subelement_dimensions_array, lun, $
+                                                  dimensions_array_tag, $
+                                                  dimensions_array, $
+                                                  SWAP_ENDIAN=swap_endian, $
+                                                  DEBUG=debug
 
                 ;; Array name subelement
 
@@ -872,7 +904,9 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
                 ENDIF
 
                 array_name_tag = element_tag_struct()
-                read_element_tag, lun, array_name_tag, DEBUG=debug
+                read_element_tag, lun, array_name_tag, $
+                                  SWAP_ENDIAN=swap_endian, $
+                                  DEBUG=debug
 
                 IF keyword_set(debug) THEN BEGIN
                     print, '* Array name subelement data'
@@ -880,6 +914,7 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
 
                 array_name = ''
                 read_subelement_array_name, lun, array_name_tag, array_name, $
+                                            SWAP_ENDIAN=swap_endian, $
                                             DEBUG=debug
 
                 IF keyword_set(verbose) THEN print, array_name
@@ -892,13 +927,17 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
                 ENDIF
 
                 real_part_tag = element_tag_struct()
-                read_element_tag, lun, real_part_tag, DEBUG=debug
+                read_element_tag, lun, real_part_tag, $
+                                  SWAP_ENDIAN=swap_endian, $
+                                  DEBUG=debug
 
                 IF keyword_set(debug) THEN BEGIN
                     print, '* Real part (pr) subelement data'
                 ENDIF
 
-                read_element_data, lun, real_part_tag, real_data, DEBUG=debug
+                read_element_data, lun, real_part_tag, real_data, $
+                                   SWAP_ENDIAN=swap_endian, $
+                                   DEBUG=debug
 
                 data = real_data
 
@@ -912,13 +951,16 @@ PRO load_mat, filename, path, STORE_LEVEL=store_level, $
                     ENDIF
 
                     imag_part_tag = element_tag_struct()
-                    read_element_tag, lun, imag_part_tag, DEBUG=debug
+                    read_element_tag, lun, imag_part_tag, $
+                                      SWAP_ENDIAN=swap_endian, $
+                                      DEBUG=debug
 
                     IF keyword_set(debug) THEN BEGIN
                         print, '* Imaginary part (pi) subelement data'
                     ENDIF
 
                     read_element_data, lun, imag_part_tag, imag_data, $
+                                       SWAP_ENDIAN=swap_endian, $
                                        DEBUG=debug
 
                     data = complex(real_data, imag_data)
